@@ -201,6 +201,27 @@ input_user_data() {
     update_user_data true
 }
 
+backup_node() {
+    local backup_dir="$HOME/kroma-backups"
+    local timestamp=$(date +"%Y%m%d%H%M%S")
+    local backup_file="$backup_dir/backup-kroma-$timestamp.tar.gz"
+
+    # Создаем каталог для резервных копий, если он еще не существует
+    mkdir -p $backup_dir
+
+    echo_and_log "Создание резервной копии..." $BLUE
+
+    # Архивируем нужные файлы
+    tar -czvf $backup_file -C $HOME/kroma-up keys .env
+
+    if [ $? -eq 0 ]; then
+        echo_and_log "Резервное копирование завершено: $backup_file" $GREEN
+    else
+        echo_and_log "Ошибка при резервном копировании." $RED
+    fi
+}
+
+
 # Функция для обновления файла .env
 update_env_file() {
     local key=$1
@@ -209,7 +230,7 @@ update_env_file() {
 
     # Если ключ уже существует в файле, обновить его
     if grep -q "$key=" "$file"; then
-        sed -i "s/^$key=.*/$key=\"$value\"/" "$file"
+        sed -i "s|^$key=.*|$key=\"$value\"|" "$file"
     else
         # Если ключ не существует в файле, добавить его
         echo "$key=\"$value\"" >> "$file"
@@ -223,7 +244,7 @@ update_file() {
 
     # Если ключ уже существует в файле, обновить его
     if grep -q "$key=" "$file"; then
-        sed -i "s/^$key=.*/$key=\"$value\"/" "$file"
+        sed -i "s|^$key=.*|$key=\"$value\"|" "$file"
     else
         # Если ключ не существует в файле, добавить его
         echo "$key=\"$value\"" >> "$file"
@@ -260,16 +281,22 @@ install_node() {
     start_env
     sleep 1
     input_user_data
-    sleep 2
-    check_success
     sleep 1
-    update_env_file "L1_RPC_ENDPOINT=" "https://ethereum-sepolia.blockpi.network/v1/rpc/public"
-    update_file "NODE_SNAPSHOT_LOG=" "snapshot.log" "$HOME/kroma-up/envs/sepolia/node.env"
+    echo_and_log "Обновление Эндпоинта.." $BLUE
+    update_env_file "L1_RPC_ENDPOINT" "https://ethereum-sepolia.blockpi.network/v1/rpc/public"
+    check_success
+    echo_and_log "Обновление log file.." $BLUE
+    update_file "NODE_SNAPSHOT_LOG" "snapshot.log" "$HOME/kroma-up/envs/sepolia/node.env"
+    check_success
 }
 
 # Функция для удаления ноды
 remove_node() {
     echo_and_log "Удаление ноды..." $BLUE
+    
+    # Вызов функции резервного копирования перед удалением
+    backup_node
+
     cd $HOME/kroma-up
     docker compose --profile validator down -v
     sleep 1
