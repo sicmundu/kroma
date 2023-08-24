@@ -84,7 +84,7 @@ check_docker() {
 clone_repo() {
     echo_and_log "Клонирование репозитория Kroma..." $BLUE
     cd $HOME
-    git clone https://github.com/kroma-network/kroma-up.git && cd kroma-up
+    git clone https://github.com/kroma-network/kroma-up.git && chmod -R a+rwx kroma-up && cd kroma-up
     check_success
 }
 
