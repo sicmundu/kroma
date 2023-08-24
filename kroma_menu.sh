@@ -306,6 +306,49 @@ remove_node() {
     sleep 2
 }
 
+# Функция обновления ноды
+update_node() {
+    echo_and_log "Обновление ноды..." $YELLOW
+    sleep 1
+
+    # Переходим в папку $HOME/kroma-up
+    cd $HOME/kroma-up
+
+    # Остановка ноды
+    echo_and_log "Остановка ноды..." $BLUE
+    docker-compose --profile validator down -v
+    check_success
+    sleep 1
+
+    # Получаем изменения из репозитория
+    echo_and_log "Получаем изменения из репозитория..." $BLUE
+    git fetch origin
+    git reset --hard origin/main
+    check_success
+
+    # Создаем резервную копию .env файла и копируем образец
+    echo_and_log "Создаем резервную копию .env файла и копируем образец..." $BLUE
+    mv .env .env.backup
+    cp .env.sample .env
+    sleep 1
+
+    # Обновляем данные в .env файле
+    echo_and_log "Обновляем данные в .env файле..." $BLUE
+    echo_and_log "Обновление Эндпоинта..." $BLUE
+    update_env_file "L1_RPC_ENDPOINT" "https://ethereum-sepolia.blockpi.network/v1/rpc/public"
+    echo_and_log "Обновление log file.." $BLUE
+    update_file "NODE_SNAPSHOT_LOG" "snapshot.log" "$HOME/kroma-up/envs/sepolia/node.env"
+    sleep 1
+
+    # Восстанавливаем KROMA_VALIDATOR__PRIVATE_KEY из резервной копии
+    PRIVATE_KEY=$(grep "KROMA_VALIDATOR__PRIVATE_KEY=" .env.backup | cut -d'=' -f2 | tr -d '"')
+    update_env_file "KROMA_VALIDATOR__PRIVATE_KEY" "$PRIVATE_KEY"
+    check_success
+    sleep 1
+
+    echo_and_log "Обновление ноды завершено." $GREEN
+}
+
 
 # Функция для удаления ноды
 stop_node() {
@@ -346,7 +389,8 @@ EOF
             echo -e "2. Запустить ноду (Статус: $(check_run_status))"
         fi
         echo -e "4. Обновить данные в .env файле ($(check_env_data))"
-        echo -e "5. Выход из меню"
+        echo -e "5. Обновить ноду"
+        echo -e "6. Выход из меню"
         read -n1 -p "Выберите действие: " choice
         echo ""  # Добавляем новую строку для более чистого вывода
         case $choice in
@@ -364,7 +408,8 @@ EOF
                 fi
                 ;;
             4) update_user_data;;
-            5) break;;
+            5) update_node;;
+            6) break;;
             *) echo -e "Неверный выбор. Попробуйте еще раз." $RED;;
         esac
 
