@@ -283,7 +283,7 @@ install_node() {
     input_user_data
     sleep 1
     echo_and_log "Обновление Эндпоинта.." $BLUE
-    update_env_file "L1_RPC_ENDPOINT" "https://ethereum-sepolia.blockpi.network/v1/rpc/public"
+    update_env_file "KROMA_NODE__L1_RPC_ENDPOINT" "https://ethereum-sepolia.blockpi.network/v1/rpc/public"
     check_success
     echo_and_log "Обновление log file.." $BLUE
     update_file "NODE_SNAPSHOT_LOG" "snapshot.log" "$HOME/kroma-up/envs/sepolia/node.env"
@@ -335,7 +335,7 @@ update_node() {
     # Обновляем данные в .env файле
     echo_and_log "Обновляем данные в .env файле..." $BLUE
     echo_and_log "Обновление Эндпоинта..." $BLUE
-    update_env_file "L1_RPC_ENDPOINT" "https://ethereum-sepolia.blockpi.network/v1/rpc/public"
+    update_env_file "KROMA_NODE__L1_RPC_ENDPOINT" "https://ethereum-sepolia.blockpi.network/v1/rpc/public"
     echo_and_log "Обновление log file.." $BLUE
     update_file "NODE_SNAPSHOT_LOG" "snapshot.log" "$HOME/kroma-up/envs/sepolia/node.env"
     sleep 1
