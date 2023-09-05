@@ -91,7 +91,7 @@ clone_repo() {
 # Функция для запуска окружения
 start_env() {
     echo_and_log "Запуск окружения..." $BLUE
-    ./startup.sh
+    ./startup.sh sepolia
     check_success
 }
 
